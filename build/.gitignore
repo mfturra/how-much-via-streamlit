@@ -2,3 +2,5 @@
 .env
 knowledge-gap
 MA_school_pull
+
+*.csv
