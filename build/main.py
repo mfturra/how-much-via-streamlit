@@ -1,3 +1,4 @@
+import json
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -7,30 +8,79 @@ import math
 st.write("### How Much Does Your Occupation Cost?")
 project_desc = "Every year graduates from universities and colleges across the U.S.A. leave with debt. This projects hope is to bring undergrads some price transparency to teach them how much their degree will cost in the long run...even after they leave college."
 
-# 
+# output project description
 st.write(project_desc)
 
-# import and process data
+# import and process school data
+file_path = "MA_school_pull"
+
+try:
+    with open(file_path, 'r') as file:
+        all_results = json.load(file)
+        filt_results = all_results[2:]
+
+        school_names = []
+        school_states = []
+        school_tuitions = []
+    
+        for entry in filt_results:
+            if "latest" in entry:
+                school_name = entry["latest"]["school"]["name"]
+                school_names.append(school_name)
+                school_state = entry["latest"]["school"]["state"]
+                school_states.append(school_state)
+                school_tuition = entry["latest"]["cost"]["tuition"]["in_state"]
+                school_tuitions.append(school_tuition)
+
+    school_data = pd.DataFrame({'school name': school_names, 'school state': school_states, 'school tuition': school_tuitions})
+
+except FileNotFoundError:
+    print(f"Error: File not found: {file_path}")
+
+# import and process occupational data
 data = pd.read_csv('occupational_data.csv', sep='|', index_col=False)
 data_ascd = data.sort_values('College Degree')
 
-# outline structure of data presentation
-col1, col2 = st.columns(2)
+
 
 # gather input from user
-# present a dropdown list of available degree options
-undergrad_stat = {'Freshman': 4, 'Sophmore': 3, 'Junior': 2, 'Senior': 1}
+# school options in MA
+st.write("Which college/university are you attending in Massachusetts?")
 
-deg_sel =           col1.selectbox("Degree Pursuing",
-                          data_ascd['College Degree'].dropna().unique(),
-                          index=None, placeholder="Degree Options", label_visibility="visible")
-college_year =      col2.selectbox("Current year in college",
-                                   list(undergrad_stat.keys()), index=None, placeholder="College Year Options", 
+# outline structure of data presentation
+col1, col2 = st.columns(2)
+school_sel =        col1.selectbox("University Attending",
+                                   school_data['school name'].unique(),
+                                   index=None, placeholder="University Options", 
                                    label_visibility="visible")
 
-semester_cost = col1.number_input("Cost of Tuition Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD", label_visibility="visible")
-scholarship = col2.number_input("Amount of Scholarship Earned Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD")
-any_loans = col1.selectbox("Did you have to take out any loans?",
+if school_sel is not None:
+    # school_update = school_data["school tuition"].fillna("Unavailable")
+
+    school_tuition = school_data[school_data["school name"] == school_sel]['school tuition'].iloc[0]
+
+    with col2:
+        st.write(f"Your estimated tuition costs are: ${school_tuition:,.2f}")
+
+# st.markdown("<br><br>", unsafe_allow_html=True)
+st.divider()
+
+col3, col4 = st.columns(2)
+# degree options
+undergrad_stat = {'Freshman': 4, 'Sophmore': 3, 'Junior': 2, 'Senior': 1}
+
+deg_sel =           col3.selectbox("Degree Pursuing",
+                          data_ascd['College Degree'].dropna().unique(),
+                          index=None, placeholder="Degree Options", label_visibility="visible")
+college_year =      col4.selectbox("Current year in college",
+                                   list(undergrad_stat.keys()), index=None, placeholder="College Year Options", 
+                                   label_visibility="visible")
+if school_tuition:
+    semester_cost = col3.number_input("Cost of Tuition Per Semester", value=school_tuition, placeholder="Amount in USD", label_visibility="visible")
+else:
+    semester_cost = col3.number_input("Cost of Tuition Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD", label_visibility="visible")
+scholarship = col4.number_input("Amount of Scholarship Earned Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD")
+any_loans = col3.selectbox("Did you have to take out any loans?",
                            ('Yes','No'), index=None, label_visibility="visible")
 if college_year is not None:
     years_left = undergrad_stat[college_year]
@@ -38,7 +88,7 @@ if college_year is not None:
     if any_loans is not None:
 
         if any_loans == 'Yes':
-            loan_rate = col2.number_input("What was your loan amount")
+            loan_rate = col4.number_input("What was your loan amount")
 
             if loan_rate > 0:
                 # amount due at end of college experience

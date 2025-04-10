@@ -1,6 +1,4 @@
-import os
 import json
-import requests
 import pandas as pd
 from dotenv import load_dotenv
 
@@ -29,6 +27,14 @@ try:
         # for i in range(1, 140):
         #     school_name = filt_results["latest"]["school"]["name"]
         #     print(school_name)
+    # school_of_interest = "Anna Maria College"
+    # index_data = school_data[school_data["school name"] == school_of_interest]['school tuition'].iloc[0]
+
+    raw_school_data = pd.DataFrame({'school name': school_names, 'school state': school_states, 'school tuition': school_tuitions})
+    school_data = raw_school_data["school tuition"].fillna("Unavailable")
+
+
+    # index_data = school_data.query('"school name" == "Amherst College"')['school tuition']
     print(school_data)
 except FileNotFoundError:
     print(f"Error: File not found: {file_path}")
