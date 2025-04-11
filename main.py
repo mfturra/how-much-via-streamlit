@@ -4,8 +4,16 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import math
 
+# # Initialization
+# if 'key' not in st.session_state:
+#     st.session_state['key'] = 'value'
+
+# # Session State also supports attribute based syntax
+# if 'key' not in st.session_state:
+#     st.session_state.key = 'value'
+
 # outline app purpose
-st.write("### How Much Does Your Occupation Cost?")
+st.title("How Much Does Your Occupation Cost?")
 project_desc = "Every year graduates from universities and colleges across the U.S.A. leave with debt. This projects hope is to bring undergrads some price transparency to teach them how much their degree will cost in the long run...even after they leave college."
 
 
@@ -34,47 +42,58 @@ try:
                 school_tuition = entry["latest"]["cost"]["tuition"]["in_state"]
                 school_tuitions.append(school_tuition)
 
-    school_data = pd.DataFrame({'school name': school_names, 'school state': school_states, 'school tuition': school_tuitions})
+    if "df" not in st.session_state:
+        st.session_state.df = pd.DataFrame({'school name': school_names, 'school state': school_states, 'school tuition': school_tuitions})
 
 except FileNotFoundError:
     print(f"Error: File not found: {file_path}")
+
+df = st.session_state.df
+# df['school tuition'] = df['school tuition'].fillna("NaN")
+
+
 
 # import and process occupational data
 data = pd.read_csv('occupational_data.csv', sep='|', index_col=False)
 data_ascd = data.sort_values('College Degree')
 
 
-
 # gather input from user
 # school options in MA
-st.write("Which college/university are you attending in Massachusetts?")
+st.write("Which college/university are you planning to or are currently attending in Massachusetts?")
 
 # outline structure of data presentation
-col1, col2 = st.columns(2)
-school_sel =        col1.selectbox("University Attending",
-                                   school_data['school name'].unique(),
-                                   index=None, placeholder="University Options", 
-                                   label_visibility="visible")
+col1, col2 =    st.columns(2)
+school_sel =    col1.selectbox("*University Attending",
+                                st.session_state.df['school name'].unique(),
+                                index=None, placeholder="University Options", 
+                                label_visibility="visible")
 
 if school_sel is not None:
-    # school_update = school_data["school tuition"].fillna("Unavailable")
+    # school_update = st.session_state.df["school tuition"].fillna("Unavailable")
 
-    school_tuition = school_data[school_data["school name"] == school_sel]['school tuition'].iloc[0]
+    school_tuition = df[df["school name"] == school_sel]['school tuition'].iloc[0]
 
-    with col2:
-        st.write(f"Your estimated tuition costs are: ${school_tuition:,.2f}")
+    if pd.notna(school_tuition):
+        with col2:
+            st.write(f"Your estimated tuition costs are: ${school_tuition:,.2f}")
+    else:
+        with col1:
+            st.write(f"Your schools estimated tuition costs are unavailable.")
 
 # st.markdown("<br><br>", unsafe_allow_html=True)
 st.divider()
 
+if school_sel:
+    st.write(f"What degree are you pursuing at {school_sel}?")
 col3, col4 = st.columns(2)
 # degree options
 undergrad_stat = {'Freshman': 4, 'Sophmore': 3, 'Junior': 2, 'Senior': 1}
 
-deg_sel =           col3.selectbox("Degree Pursuing",
+deg_sel =           col3.selectbox("*Degree Pursuing",
                           data_ascd['College Degree'].dropna().unique(),
                           index=None, placeholder="Degree Options", label_visibility="visible")
-college_year =      col4.selectbox("Current year in college",
+college_year =      col4.selectbox("*Current year in college",
                                    list(undergrad_stat.keys()), index=None, placeholder="College Year Options", 
                                    label_visibility="visible")
 if school_tuition:
@@ -82,7 +101,7 @@ if school_tuition:
 else:
     semester_cost = col3.number_input("Cost of Tuition Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD", label_visibility="visible")
 scholarship = col4.number_input("Amount of Scholarship Earned Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD")
-any_loans = col3.selectbox("Did you have to take out any loans?",
+any_loans = col3.selectbox("*Did you have to take out any loans?",
                            ('Yes','No'), index=None, label_visibility="visible")
 if college_year is not None:
     years_left = undergrad_stat[college_year]
@@ -98,7 +117,8 @@ if college_year is not None:
                 # amount due at end of college experience
                 sem_amount_due =  (loan_rate * 10**-2) * (semester_cost - scholarship) + (semester_cost - scholarship)
                 total_amount_due = years_left * sem_amount_due
-                st.write(f"Assuming your tuition and scholarship money doesn't change throughout your academic career, you'll owe this much when you're done: ${sem_amount_due:.2f}")
+                st.write("*Assuming your tuition and scholarship money doesn't change throughout your academic career")
+                st.write(f"You'll owe this much when you're done: ${sem_amount_due:.2f}")
             
         else:
             st.write("You're not going to own anything! Congratulations!")
