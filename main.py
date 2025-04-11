@@ -8,8 +8,10 @@ import math
 st.write("### How Much Does Your Occupation Cost?")
 project_desc = "Every year graduates from universities and colleges across the U.S.A. leave with debt. This projects hope is to bring undergrads some price transparency to teach them how much their degree will cost in the long run...even after they leave college."
 
+
 # output project description
 st.write(project_desc)
+st.divider()
 
 # import and process school data
 file_path = "MA_school_pull"
@@ -88,18 +90,37 @@ if college_year is not None:
     if any_loans is not None:
 
         if any_loans == 'Yes':
-            loan_rate = col4.number_input("What was your loan amount")
+            # loan_rate = col4.number_input("What was your loan amount")
+            loan_rate = st.slider("What was your loan rate (%)", min_value=0.5, max_value=20.0, step=0.1, label_visibility="visible")
+            st.write(f"Actual Loan Rate: {loan_rate:.1f}%")
 
             if loan_rate > 0:
                 # amount due at end of college experience
                 sem_amount_due =  (loan_rate * 10**-2) * (semester_cost - scholarship) + (semester_cost - scholarship)
-                st.write("Assuming your tuition and scholarship money doesn't change throughout your academic career, you'll owe this much when you're done")
-                st.write(f"${sem_amount_due:.2f}")
+                total_amount_due = years_left * sem_amount_due
+                st.write(f"Assuming your tuition and scholarship money doesn't change throughout your academic career, you'll owe this much when you're done: ${sem_amount_due:.2f}")
             
         else:
             st.write("You're not going to own anything! Congratulations!")
 
 
+st.markdown("""
+    <style>
+        .footer {
+            position: sticky;
+            bottom: 0;
+            width: 100%;
+            background-color: #f1f1f1;
+            text-align: center;
+            margin-top: 50px;
+            padding: 10px;
+        }
+    </style>
+    <div class="footer">
+        <p>The data presented here is sourced from the <a href="https://collegescorecard.ed.gov/" target="_blank">College Scorecard</a> and <a href="https://www.bls.gov/" target="_blank">U.S. Bureau of Labor Statistics</a>.</p>
+        <p>While every effort has been made to ensure accuracy, the data is for informational purposes only. Please verify all information independently.</p>
+    </div>
+""", unsafe_allow_html=True)
 
 
 # if deg_sel is not None: 
