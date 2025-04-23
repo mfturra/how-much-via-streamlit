@@ -3,6 +3,7 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import math
+from datetime import datetime
 
 # # Initialization
 # if 'key' not in st.session_state:
@@ -58,7 +59,7 @@ data = pd.read_csv('occupational_data.csv', sep='|', index_col=False)
 data_ascd = data.sort_values('College Degree')
 
 
-# gather input from user
+# Student scholastic details
 # school options in MA
 st.write("Which college/university are you planning to or are currently attending in Massachusetts?")
 
@@ -81,36 +82,50 @@ if school_sel is not None:
         with col1:
             st.write(f"Your schools estimated tuition costs are unavailable.")
 
-# st.markdown("<br><br>", unsafe_allow_html=True)
-st.divider()
-
+st.write("    \n\n\n")
 if school_sel:
     st.write(f"What degree are you pursuing at {school_sel}?")
-col3, col4 = st.columns(2)
+else:
+    st.write(f"What degree are you pursuing?")
+
 # degree options
 undergrad_stat = {'Freshman': 4, 'Sophmore': 3, 'Junior': 2, 'Senior': 1}
 
+col3, col4 = st.columns(2)
 deg_sel =           col3.selectbox("*Degree Pursuing",
                           data_ascd['College Degree'].dropna().unique(),
                           index=None, placeholder="Degree Options", label_visibility="visible")
 college_year =      col4.selectbox("*Current year in college",
                                    list(undergrad_stat.keys()), index=None, placeholder="College Year Options", 
                                    label_visibility="visible")
+st.divider()
+
+
+# Student Loan Financials
+st.write("Financial Terms for Academic Pursuit")
+col5, col6 = st.columns(2)
+
 if school_tuition:
-    semester_cost = col3.number_input("Cost of Tuition Per Semester", value=school_tuition, placeholder="Amount in USD", label_visibility="visible")
+    semester_cost = col5.number_input("*Cost of Tuition Per Semester", value=school_tuition, placeholder="Amount in USD", label_visibility="visible")
 else:
-    semester_cost = col3.number_input("Cost of Tuition Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD", label_visibility="visible")
-scholarship = col4.number_input("Amount of Scholarship Earned Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD")
-any_loans = col3.selectbox("*Did you have to take out any loans?",
+    semester_cost = col5.number_input("*Cost of Tuition Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD", label_visibility="visible")
+
+any_loans = col6.selectbox("*Did you have to take out any loans?",
                            ('Yes','No'), index=None, label_visibility="visible")
+
+scholarship = col5.number_input("Amount of Scholarship Earned Per Semester", min_value=0, max_value=100000, placeholder="Amount in USD")
+
+
 if college_year is not None:
     years_left = undergrad_stat[college_year]
 
     if any_loans is not None:
 
         if any_loans == 'Yes':
+            st.write("    \n\n\n")
+            st.write("What are the specifics of your loan conditions?")
             # loan_rate = col4.number_input("What was your loan amount")
-            loan_rate = st.slider("What was your loan rate (%)", min_value=0.5, max_value=20.0, step=0.1, label_visibility="visible")
+            loan_rate = st.slider("What is your loan rate (%)", min_value=0.5, max_value=20.0, step=0.1, label_visibility="visible")
             st.write(f"Actual Loan Rate: {loan_rate:.1f}%")
 
             if loan_rate > 0:
@@ -118,10 +133,21 @@ if college_year is not None:
                 sem_amount_due =  (loan_rate * 10**-2) * (semester_cost - scholarship) + (semester_cost - scholarship)
                 total_amount_due = years_left * sem_amount_due
                 st.write("*Assuming your tuition and scholarship money doesn't change throughout your academic career")
-                st.write(f"You'll owe this much when you're done: ${sem_amount_due:.2f}")
+                st.write(f"You'll owe this much when you're done: **${sem_amount_due:.2f}**")
+
+                loan_term_years = st.slider("What is your loan term (Years)", min_value=1, max_value=30, value=10)
+                start_date = st.date_input("Loan Start Date", value=datetime.today())
+                monthly_rate = loan_rate / 100 / 12
+                num_payments = loan_term_years * 12
+                monthly_payment = total_amount_due * (monthly_rate * (1 + monthly_rate) ** num_payments) / ((1 + monthly_rate) ** num_payments - 1)
+                st.write(f"Your estimated monthly payment is: **${monthly_payment:,.2f}**")
+
             
         else:
             st.write("You're not going to own anything! Congratulations!")
+
+    
+
 
 
 st.markdown("""
