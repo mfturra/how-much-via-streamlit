@@ -1,0 +1,17 @@
+# For documentation purposes to compare to the imperative command:
+# kubectl run nginx-pod --image=nginx:1.27.0
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod
+  labels: 
+    app: nginx
+  annotations:
+    description: "Nginx pod for learning purposes"
+spec:
+  containers:
+  - image: nginx:1.27.0
+    name: nginx-container
+    ports:
+    - containerPort: 80
