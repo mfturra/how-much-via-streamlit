@@ -1,12 +1,14 @@
 # For documentation purposes to compare to the imperative command:
-# kubectl expose pod nginx-pod --type=NodePort --port=80
+# kubectl expose  pod nginx-pod --type=NodePort --port=80
 
 apiVersion: v1
 kind: Service
 metadata:
   name: nginx-svc
-  labels:
+  labels: 
     app: nginx
+  annotations:
+    description: "Nginx pod for learning purposes"
 spec:
   type: NodePort
   ports:
