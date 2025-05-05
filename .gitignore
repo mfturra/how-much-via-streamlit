@@ -1,9 +1,7 @@
 # Created by venv; see https://docs.python.org/3/library/venv.html
 .env
 knowledge-gap
-MA_school_pull
 
-*.csv
 
 # python gitignore
 # Byte-compiled / optimized / DLL files

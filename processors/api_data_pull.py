@@ -6,14 +6,16 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # ingest .env vars
-BASE_URL = os.getenv('DOMAIN')
+BASE_URL =      os.getenv('DOMAIN')
 API_KEY =       os.getenv('COLLEGE_SCORECARD_API')
 state =         'MA'
 base_page =     0
 results_per_page =   100
 
 all_results = []
-url = f'{BASE_URL}?api_key={API_KEY}&school.state={state}&page={base_page}&per_page={results_per_page}'
+url = f'{BASE_URL}?api_key={API_KEY}&school.state=MA&fields=id,school.name,state,latest.cost.tuition.in_state,latest.cost.tuition.out_of_state,latest.completion.rate'
+
+# &school.state={state}&page={base_page}&per_page={results_per_page}'
 
 # A GET request to the API
 api_response = requests.get(url)

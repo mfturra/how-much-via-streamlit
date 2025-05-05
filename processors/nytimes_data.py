@@ -4,7 +4,7 @@ from matplotlib import rcParams
 import numpy as np
 
 
-nyfed_labor_data = pd.read_excel("College-labor-data.xlsx", index_col="Major", sheet_name="outcomes by major", header=0, skiprows=10)
+nyfed_labor_data = pd.read_excel("data/college-labor-data.xlsx", index_col="Major", sheet_name="outcomes by major", header=0, skiprows=10)
 
 stem_degrees = sorted([
     "Agriculture",
